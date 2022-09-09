@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using RangerRPG.Core;
 using UnityEngine;
 
 namespace NumbersMunchers {
@@ -9,6 +10,11 @@ namespace NumbersMunchers {
         private Vector3 targetPos;
         private int targetIndex = 0;
         private bool _moving = false;
+        
+        public bool Moving {
+            get => _moving;
+            set => _moving = value;
+        }
         private bool _isDead = false;
 
         private Transform _objectTransform;
@@ -22,6 +28,7 @@ namespace NumbersMunchers {
             _paths.Clear();
             _paths = newPaths;
             targetIndex = -1;
+            targetPos = _paths[0];
             _moving = true;
         }
         
@@ -33,6 +40,7 @@ namespace NumbersMunchers {
             if (!_moving || _isDead) return;
             elapsedDistance += Time.deltaTime * _moveSpeed;
             if (_objectTransform.localPosition != targetPos) {
+                // Log.Debug($"Local Position {_objectTransform.localPosition}");
                 _objectTransform.localPosition = Vector3.Lerp(_objectTransform.localPosition, targetPos, elapsedDistance);
             } else {
                 elapsedDistance = 0;

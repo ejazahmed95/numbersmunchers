@@ -19,7 +19,7 @@ namespace NumbersMunchers.Scripts {
         }
 
         private void SyncNewData(TileData data) {
-            Log.Info($"Tile Data Changed for Index={_index}");
+            // Log.Info($"Tile Data Changed for Index={_index}");
 
             _expressionText.text = data.Active ? data.Statement.Expression : "";
             pillRef.SetActive(data.Active);

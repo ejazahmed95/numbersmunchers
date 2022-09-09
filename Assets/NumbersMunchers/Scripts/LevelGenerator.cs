@@ -22,9 +22,12 @@ namespace NumbersMunchers.Scripts {
         private ExpressionGenerator _expGen;
         private int currentLives = 3;
 
+        private List<TileData> _emptyTiles;
+
         private void Start() {
             _tiles = new List<List<TileView>>();
             _tilesData = new List<List<TileData>>();
+            _emptyTiles = new List<TileData>();
             CreateTiles();
             StartCoroutine(CreateNewQuestion());
             _expGen = ExpressionGenerator.Instance;
@@ -116,16 +119,46 @@ namespace NumbersMunchers.Scripts {
             }
             if (tileData.Statement.Correct) {
                 tileData.ClearStatement();
+                _emptyTiles.Add(tileData);
                 UIManager.Instance.UpdateScore(10);
             }
             else {
                 tileData.ClearStatement();
+                _emptyTiles.Add(tileData);
                 UIManager.Instance.UpdateLives(--currentLives);
                 if (currentLives == 0) {
                     CustomSceneLoader.LoadScene("GameOver");
                 }
                 _player.Respawn();
                 
+            }
+        }
+        
+        public List<Vector3> GetRandomPath(Vector3 fromLoc) {
+            var currentLoc = GetCellLocationForPosition(fromLoc);
+
+            var tileData = _tilesData[Random.Range(0, gridSize.y)][Random.Range(0, gridSize.x)];
+            if (_emptyTiles.Count > 0) {
+                tileData = _emptyTiles[Random.Range(0, _emptyTiles.Count)];
+            }
+            Log.Debug($"Random Path for Enemy! = {currentLoc}; To={tileData.Index}");
+            var paths = CreatePathPoints(currentLoc, new Vector2Int(tileData.Index.y, tileData.Index.x));
+            return paths;
+        }
+        
+        public void DigNumber(Vector3 fromLoc) {
+            var currentLoc = GetCellLocationForPosition(fromLoc);
+            TileData tileData = _tilesData[currentLoc.y][currentLoc.x];
+            var qInfo = questionManager.currentQuestion;
+            if (tileData.Active) return;
+            if (Random.value < trueRatio) {
+                int index = Random.Range(0, qInfo.TrueNumbers.Count);
+                var expression = _expGen.GetExpression(qInfo.TrueNumbers[index]);
+                tileData.UpdateExpression(new Statement{Expression = expression, Correct = true}, true);
+            } else {
+                int index = Random.Range(0, qInfo.FalseNumbers.Count);
+                var expression = _expGen.GetExpression(qInfo.FalseNumbers[index]);
+                tileData.UpdateExpression(new Statement{Expression = expression, Correct = false}, true);
             }
         }
     }
